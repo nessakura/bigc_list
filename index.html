@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 600px;
             width: 100%;
             background-color: #fff;
             padding: 30px;
@@ -67,25 +67,34 @@
         }
 
         .item-list {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .item-list th, .item-list td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        .item-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .item-list th {
-            background-color: #e0f2f1;
-            color: #004d40;
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .item-name {
             font-weight: 600;
+            font-size: 1.1rem;
         }
-        
-        .item-list td:last-child {
-            white-space: nowrap;
+
+        .item-date {
+            color: #6c757d;
         }
 
         .status-badge {
@@ -95,6 +104,7 @@
             font-weight: bold;
             color: white;
             text-align: center;
+            align-self: flex-start;
         }
         
         .status-ok {
@@ -109,13 +119,19 @@
             background-color: #F44336; /* Red */
         }
         
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         .action-btn {
             padding: 8px 12px;
             border: none;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
-            margin-right: 5px;
             transition: background-color 0.3s;
         }
         
@@ -155,18 +171,8 @@
         <button onclick="addItem()">เพิ่มสินค้า</button>
     </div>
 
-    <table class="item-list">
-        <thead>
-            <tr>
-                <th>สินค้า</th>
-                <th>วันหมดอายุ</th>
-                <th>สถานะ</th>
-                <th>จัดการ</th>
-            </tr>
-        </thead>
-        <tbody id="itemTableBody">
-        </tbody>
-    </table>
+    <div id="itemTableBody" class="item-list">
+    </div>
     
     <p id="emptyMessage" class="empty-list-message" style="display:none;">
         ไม่มีรายการสินค้า
@@ -222,17 +228,20 @@
                 statusClass = 'status-ok';
             }
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.productName}</td>
-                <td>${item.expiryDate}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.innerHTML = `
+                <div class="item-info">
+                    <span class="item-name">${item.productName}</span>
+                    <span class="item-date">วันหมดอายุ: ${item.expiryDate}</span>
+                </div>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+                <div class="action-buttons">
                     <button class="action-btn edit" onclick="editItem(${index})">แก้ไข</button>
                     <button class="action-btn delete" onclick="deleteItem(${index})">ลบ</button>
-                </td>
+                </div>
             `;
-            itemTableBody.appendChild(row);
+            itemTableBody.appendChild(card);
         });
     }
 
