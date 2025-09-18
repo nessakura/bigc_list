@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการสินค้าป้ายเหลือง</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #004d40;
+            margin-bottom: 20px;
+        }
+
+        .add-item-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .add-item-form input[type="text"],
+        .add-item-form input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .add-item-form input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.2);
+        }
+
+        .add-item-form button {
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-item-form button:hover {
+            background-color: #45a049;
+        }
+
+        .item-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .item-list th, .item-list td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .item-list th {
+            background-color: #e0f2f1;
+            color: #004d40;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+        
+        .status-ok {
+            background-color: #2196F3; /* Blue */
+        }
+        
+        .status-yellow {
+            background-color: #FFC107; /* Yellow */
+        }
+        
+        .status-expired {
+            background-color: #F44336; /* Red */
+        }
+        
+        .empty-list-message {
+            text-align: center;
+            color: #888;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>รายการสินค้าป้ายเหลือง</h1>
+
+    <div class="add-item-form">
+        <input type="text" id="productName" placeholder="ชื่อสินค้า" required>
+        <input type="date" id="expiryDate" required>
+        <button onclick="addItem()">เพิ่มสินค้า</button>
+    </div>
+
+    <table class="item-list">
+        <thead>
+            <tr>
+                <th>สินค้า</th>
+                <th>วันหมดอายุ</th>
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody id="itemTableBody">
+        </tbody>
+    </table>
+    
+    <p id="emptyMessage" class="empty-list-message" style="display:none;">
+        ไม่มีรายการสินค้า
+    </p>
+
+</div>
+
+<script>
+    const itemTableBody = document.getElementById('itemTableBody');
+    const emptyMessage = document.getElementById('emptyMessage');
+
+    function saveItems(items) {
+        localStorage.setItem('yellowTagItems', JSON.stringify(items));
+    }
+
+    function getItems() {
+        const storedItems = localStorage.getItem('yellowTagItems');
+        return storedItems ? JSON.parse(storedItems) : [];
+    }
+
+    function renderItems() {
+        const items = getItems();
+        itemTableBody.innerHTML = '';
+        
+        if (items.length === 0) {
+            emptyMessage.style.display = 'block';
+            return;
+        }
+        
+        emptyMessage.style.display = 'none';
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        items.forEach(item => {
+            const expiry = new Date(item.expiryDate);
+            expiry.setHours(0, 0, 0, 0);
+
+            const diffTime = expiry.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let statusText = '';
+            let statusClass = '';
+
+            if (diffDays === 1) {
+                statusText = 'ป้ายเหลือง';
+                statusClass = 'status-yellow';
+            } else if (diffDays <= 0) {
+                statusText = 'หมดอายุ';
+                statusClass = 'status-expired';
+            } else {
+                statusText = `อีก ${diffDays} วัน`;
+                statusClass = 'status-ok';
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.productName}</td>
+                <td>${item.expiryDate}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            `;
+            itemTableBody.appendChild(row);
+        });
+    }
+
+    function addItem() {
+        const productName = document.getElementById('productName').value;
+        const expiryDate = document.getElementById('expiryDate').value;
+
+        if (productName && expiryDate) {
+            const items = getItems();
+            items.push({ productName, expiryDate });
+            saveItems(items);
+            renderItems();
+
+            document.getElementById('productName').value = '';
+            document.getElementById('expiryDate').value = '';
+        } else {
+            alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        }
+    }
+
+    // แสดงรายการเมื่อโหลดหน้าเว็บครั้งแรก
+    document.addEventListener('DOMContentLoaded', renderItems);
+</script>
+
+</body>
+</html>
