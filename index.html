@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background-color: #fff;
             padding: 30px;
@@ -83,6 +83,10 @@
             color: #004d40;
             font-weight: 600;
         }
+        
+        .item-list td:last-child {
+            white-space: nowrap;
+        }
 
         .status-badge {
             display: inline-block;
@@ -103,6 +107,34 @@
         
         .status-expired {
             background-color: #F44336; /* Red */
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn.edit {
+            background-color: #ff9800; /* Orange */
+            color: white;
+        }
+        
+        .action-btn.edit:hover {
+            background-color: #f57c00;
+        }
+        
+        .action-btn.delete {
+            background-color: #f44336; /* Red */
+            color: white;
+        }
+        
+        .action-btn.delete:hover {
+            background-color: #d32f2f;
         }
         
         .empty-list-message {
@@ -129,6 +161,7 @@
                 <th>สินค้า</th>
                 <th>วันหมดอายุ</th>
                 <th>สถานะ</th>
+                <th>จัดการ</th>
             </tr>
         </thead>
         <tbody id="itemTableBody">
@@ -168,7 +201,7 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        items.forEach(item => {
+        items.forEach((item, index) => {
             const expiry = new Date(item.expiryDate);
             expiry.setHours(0, 0, 0, 0);
 
@@ -194,6 +227,10 @@
                 <td>${item.productName}</td>
                 <td>${item.expiryDate}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="action-btn edit" onclick="editItem(${index})">แก้ไข</button>
+                    <button class="action-btn delete" onclick="deleteItem(${index})">ลบ</button>
+                </td>
             `;
             itemTableBody.appendChild(row);
         });
@@ -213,6 +250,34 @@
             document.getElementById('expiryDate').value = '';
         } else {
             alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        }
+    }
+
+    function editItem(index) {
+        const items = getItems();
+        const itemToEdit = items[index];
+        
+        const newName = prompt('แก้ไขชื่อสินค้า:', itemToEdit.productName);
+        const newDate = prompt('แก้ไขวันหมดอายุ (YYYY-MM-DD):', itemToEdit.expiryDate);
+        
+        if (newName !== null && newDate !== null) {
+            if (newName.trim() !== '' && newDate.trim() !== '') {
+                items[index].productName = newName;
+                items[index].expiryDate = newDate;
+                saveItems(items);
+                renderItems();
+            } else {
+                alert('ข้อมูลไม่ถูกต้อง');
+            }
+        }
+    }
+
+    function deleteItem(index) {
+        if (confirm('คุณต้องการลบรายการนี้หรือไม่?')) {
+            const items = getItems();
+            items.splice(index, 1);
+            saveItems(items);
+            renderItems();
         }
     }
 
