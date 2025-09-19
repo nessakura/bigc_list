@@ -65,6 +65,30 @@
         .add-item-form button:hover {
             background-color: #45a049;
         }
+        
+        /* Edit Form Styles */
+        .edit-form {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .edit-form h2 {
+            margin-top: 0;
+            color: #004d40;
+        }
+
+        .edit-form button {
+            background-color: #2196F3; /* Blue for save button */
+        }
+        .edit-form button:hover {
+            background-color: #1a7bb9;
+        }
 
         .item-list {
             display: flex;
@@ -165,10 +189,18 @@
 <div class="container">
     <h1>รายการสินค้าป้ายเหลือง</h1>
 
-    <div class="add-item-form">
+    <div id="addForm" class="add-item-form">
         <input type="text" id="productName" placeholder="ชื่อสินค้า" required>
         <input type="date" id="expiryDate" required>
         <button onclick="addItem()">เพิ่มสินค้า</button>
+    </div>
+    
+    <div id="editForm" class="edit-form">
+        <h2>แก้ไขรายการ</h2>
+        <input type="text" id="editProductName" required>
+        <input type="date" id="editExpiryDate" required>
+        <button id="saveEditBtn">บันทึก</button>
+        <button id="cancelEditBtn">ยกเลิก</button>
     </div>
 
     <div id="itemTableBody" class="item-list">
@@ -183,6 +215,14 @@
 <script>
     const itemTableBody = document.getElementById('itemTableBody');
     const emptyMessage = document.getElementById('emptyMessage');
+    const addForm = document.getElementById('addForm');
+    const editForm = document.getElementById('editForm');
+    const editProductNameInput = document.getElementById('editProductName');
+    const editExpiryDateInput = document.getElementById('editExpiryDate');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    let currentEditIndex = null;
 
     function saveItems(items) {
         localStorage.setItem('yellowTagItems', JSON.stringify(items));
@@ -237,7 +277,7 @@
                 </div>
                 <span class="status-badge ${statusClass}">${statusText}</span>
                 <div class="action-buttons">
-                    <button class="action-btn edit" onclick="editItem(${index})">แก้ไข</button>
+                    <button class="action-btn edit" onclick="startEditItem(${index})">แก้ไข</button>
                     <button class="action-btn delete" onclick="deleteItem(${index})">ลบ</button>
                 </div>
             `;
@@ -261,25 +301,50 @@
             alert('กรุณากรอกข้อมูลให้ครบถ้วน');
         }
     }
-
-    function editItem(index) {
+    
+    function startEditItem(index) {
         const items = getItems();
         const itemToEdit = items[index];
         
-        const newName = prompt('แก้ไขชื่อสินค้า:', itemToEdit.productName);
-        const newDate = prompt('แก้ไขวันหมดอายุ (YYYY-MM-DD):', itemToEdit.expiryDate);
+        editProductNameInput.value = itemToEdit.productName;
+        editExpiryDateInput.value = itemToEdit.expiryDate;
         
-        if (newName !== null && newDate !== null) {
+        currentEditIndex = index;
+        
+        // Show edit form and hide add form
+        addForm.style.display = 'none';
+        editForm.style.display = 'flex';
+        
+        editProductNameInput.focus();
+    }
+    
+    saveEditBtn.addEventListener('click', function() {
+        if (currentEditIndex !== null) {
+            const items = getItems();
+            const newName = editProductNameInput.value;
+            const newDate = editExpiryDateInput.value;
+
             if (newName.trim() !== '' && newDate.trim() !== '') {
-                items[index].productName = newName;
-                items[index].expiryDate = newDate;
+                items[currentEditIndex].productName = newName;
+                items[currentEditIndex].expiryDate = newDate;
                 saveItems(items);
                 renderItems();
+                
+                // Hide edit form and show add form
+                editForm.style.display = 'none';
+                addForm.style.display = 'flex';
+                currentEditIndex = null;
             } else {
                 alert('ข้อมูลไม่ถูกต้อง');
             }
         }
-    }
+    });
+
+    cancelEditBtn.addEventListener('click', function() {
+        editForm.style.display = 'none';
+        addForm.style.display = 'flex';
+        currentEditIndex = null;
+    });
 
     function deleteItem(index) {
         if (confirm('คุณต้องการลบรายการนี้หรือไม่?')) {
